@@ -1,32 +1,48 @@
 # EMEPLEIER
 Send OSC messages to MPlayer
 
+
+## Requirements
+
+Mplayer is needed. On Debain based systems:
+
+`sudo apt install mplayer`
+
+Python 3 and python-osc module should be installed.
+
+`pip install python-osc`
+
+
+
+
+## Usage
+
 In SuperDirt
 
 ``` supercollider
-~oscaddr = NetAddr.new("127.0.0.1", 5005);    // create the NetAddr
 (
-~video = "";
-~dirt.receiveAction = { |event|
-	var dur, nchan, vel, note, pchan;
+~oscaddr = NetAddr.new("127.0.0.1", 5005);
+~dirt.receiveAction = { |e|
+	var video, pos, speed, orbit;
 
-	if(event['video']!=nil)
+    video = e['video'];
+    pos = e['pos'];
+    orbit = if (e['orbit']!=nil, { e['orbit'] },{ 0 });
+    
+
+	if(video!=nil)
 	{
-		if(event.video!=~video)
-		{
-			event.postln;
-			~oscaddr.sendMsg("/loadfile",event.video);
-			~video = event.video;
-		}
+        ~oscaddr.sendMsg("/loadfile",video,orbit);
 	};
 
-	if(event['depth']!=nil && event['pos']!=nil && event['n']!=nil)
+	if(pos!=nil)
 	{
-		SystemClock.sched(event.latency,{
-			~oscaddr.sendMsg("/seek",(event.n+1)*event.depth + event.pos);
+		SystemClock.sched(e.latency,{
+			~oscaddr.sendMsg("/seek",pos,orbit);
 		});
 	}
 };
+)
 ```
 
 In tidal

@@ -1,0 +1,33 @@
+-- define seek and video
+let seek = pF "seek"
+    video = pS "video"
+
+-- pattern video seeking
+-- and take audio from first 2 input channels
+-- (route emepleier outputs to SC inputs in advance)
+d1 $ seek "0 0.5" # s "ino"
+
+--change video from the same folder of the default video
+d1 $ seek "0 0.5" # s "ino" # video "burger.mp4"
+
+-- stack 4 videos to different orbits
+-- (orbit is used for "video channel" and "ino" audio input)
+d1 $ stack[
+ seek "0 0.5"  # s "ino" # video "burger.mp4",
+ seek "0 0.9"  # s "ino" # video "cheese.mp4" # orbit 1,
+ seek "0 0.9"  # s "ino" # video "ham.mp4" # orbit 2,
+ seek "0(3,8)" # s "ino" # video "fries.mp4" # orbit 3
+]
+
+
+-- dont want audio? simple
+d1 $ seek "0(3,8)" # s "~"
+
+
+
+--or have independent patterns
+--controls video here
+d1 $ seek "0(3,8)" # s "~" # orbit 2 # video "0.mp4"
+
+-- and control audio here
+d1 $ s "ino" # orbit 2 # lpf 500 # lpq 0.2
