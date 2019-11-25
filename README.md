@@ -4,54 +4,51 @@ Send OSC messages to MPlayer
 
 ## Requirements
 
-Mplayer is needed. On Debain based systems:
+Install Mplayer. On Debain based systems:
 
-`sudo apt install mplayer`
+```bash
+sudo apt install mplayer
+```
 
-Python 3 and python-osc module should be installed.
+Install Python 3 and python-osc module.
 
-`pip install python-osc`
+```bash
+pip install python-osc
+```
 
 
+To get the video in Atom with [hydra](https://github.com/ojack/atom-hydra), [v4l2loopback](https://github.com/umlaeute/v4l2loopback) is used to make loopback video devices.
+
+To install it on Debian
+
+```bash
+sudo apt install v4l2loopback-dkms
+```
+
+
+Finally, since `mplayer` cannot pipe video directly to v4l2 because a different video format is expected, it has to be piped to a converter program before.
+
+You have to compile the converter `yuv4mpeg_to_v4l2.c` into this directory
+```bash
+gcc -o yuv4mpeg_to_v4l2 yuv4mpeg_to_v4l2.c
+```
+
+So the flow is: `mplayer` -> `tempPipe` -> `yuv4mpeg_to_v4l2` -> `virtualCamera`  
+(Don't run this... it is here to explain what is happening inside `emepleier.py`)
+```bash
+./yuv4mpeg_to_v4l2 /dev/video1 < /tmp/vid0 & mplayer -vo yuv4mpeg:file=/tmp/vid0 vid.mp4
+```
 
 
 ## Usage
 
-In SuperDirt
+In SuperDirt execute `emepleier.scd`
 
-``` supercollider
-(
-~oscaddr = NetAddr.new("127.0.0.1", 5005);
-~dirt.receiveAction = { |e|
-	var video, pos, speed, orbit;
-
-    video = e['video'];
-    pos = e['pos'];
-    orbit = if (e['orbit']!=nil, { e['orbit'] },{ 0 });
-    
-
-	if(video!=nil)
-	{
-        ~oscaddr.sendMsg("/loadfile",video,orbit);
-	};
-
-	if(pos!=nil)
-	{
-		SystemClock.sched(e.latency,{
-			~oscaddr.sendMsg("/seek",pos,orbit);
-		});
-	}
-};
-)
-```
-
-In tidal
+In tidal (0.9x)
 
 ``` haskell
-let (pos, pos_p) = pF "pos" (Just 0.0)
-    (depth, depth_p) = pF "depth" (Just 0.0)
+let (seek, seek_p) = pF "seek" (Just 0.0)
     (video, video_p) = pS "video" (Just "0001.mp4")
-    
-d1 $ n "0 1 2 1" # s "in" # depth 1.2 # pos "40 50" # video "0012.mp4" # gain 1.60
-```
 
+d1 $ seek "0 0.5" # s "ino" #  video "hi.mp4"
+```

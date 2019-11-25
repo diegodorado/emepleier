@@ -24,10 +24,11 @@ d1 $ stack[
 d1 $ seek "0(3,8)" # s "~"
 
 
-
 --or have independent patterns
 --controls video here
 d1 $ seek "0(3,8)" # s "~" # orbit 2 # video "0.mp4"
 
 -- and control audio here
-d1 $ s "ino" # orbit 2 # lpf 500 # lpq 0.2
+d1 $ seek ("0*2"|+rand*0.4) # s "ino" # orbit 0 # speed 0.5
+
+d2 $ s "swbd"
